@@ -45,11 +45,14 @@ jobs:
           fi
 
       - name: Build Debug APK
+        env:
+          JAVA_TOOL_OPTIONS: "-Djava.awt.headless=true -Dfile.encoding=UTF-8"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=\"-Xmx4g -Djava.awt.headless=true\" -Djava.awt.headless=true"
         run: |
           if [ -f gradlew ]; then
-            ./gradlew assembleDebug --no-daemon
+            ./gradlew assembleDebug --no-daemon -Djava.awt.headless=true -Dorg.gradle.parallel=false
           else
-            gradle assembleDebug --no-daemon
+            gradle assembleDebug --no-daemon -Djava.awt.headless=true -Dorg.gradle.parallel=false
           fi
 
       - name: Upload APK Artifact
