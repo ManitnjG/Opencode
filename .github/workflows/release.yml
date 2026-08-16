@@ -36,13 +36,25 @@ jobs:
         run: |
           if [ -f gradlew ]; then chmod +x gradlew; fi
 
-      - name: Setup debug keystore and dummy google-services if missing
+      - name: Setup CI Environment and Credentials
         run: |
-          # If debug.keystore is missing in CI runner root, create standard debug keystore
-          if [ ! -f debug.keystore ]; then
+          # 1. Restore or create debug.keystore for APK signing
+          if [ -f debug.keystore.base64 ]; then
+            base64 -d debug.keystore.base64 > debug.keystore
+          elif [ ! -f debug.keystore ]; then
             keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
-          # Ensure dummy google-services.json exists for CI if not provided
+
+          # 2. Ensure .env exists for Secrets Gradle plugin
+          if [ ! -f .env ]; then
+            if [ -f .env.example ]; then
+              cp .env.example .env
+            else
+              touch .env
+            fi
+          fi
+
+          # 3. Ensure dummy google-services.json exists for CI if not provided
           if [ ! -f app/google-services.json ]; then
             mkdir -p app
             echo '{"project_info":{"project_number":"000000000000","project_id":"opencode-dummy"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.aistudio.opencode.agent"}},"oauth_client":[],"api_key":[{"current_key":"dummy_api_key"}],"services":{"analytics_service":{"status":1}}}]}' > app/google-services.json
@@ -51,12 +63,11 @@ jobs:
       - name: Build Debug APK
         env:
           JAVA_TOOL_OPTIONS: "-Djava.awt.headless=true -Dfile.encoding=UTF-8"
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=\"-Xmx4g -Djava.awt.headless=true\" -Djava.awt.headless=true"
         run: |
           if [ -f gradlew ]; then
-            ./gradlew assembleDebug --no-daemon -Djava.awt.headless=true -Dorg.gradle.parallel=false
+            ./gradlew assembleDebug --stacktrace --no-daemon -Djava.awt.headless=true
           else
-            gradle assembleDebug --no-daemon -Djava.awt.headless=true -Dorg.gradle.parallel=false
+            gradle assembleDebug --stacktrace --no-daemon -Djava.awt.headless=true
           fi
 
       - name: Upload APK Artifact
