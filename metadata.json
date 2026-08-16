@@ -1,0 +1,7 @@
+{
+  "name": "OpenCode",
+  "description": "Autonomous AI coding agent, TUI terminal environment, and fullstack code studio with Plan/Build modes, Git diff snapshots, and live sandbox.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
